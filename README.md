@@ -45,6 +45,7 @@ You can pass options as it would be a normal text_field, plus all the datepicker
 
     <%= datepicker_input(:foo, :att1, :minDate => -20, :maxDate => "+1M +10D", :tabindex => 70) %>
 
+If you need a datetime picker, checkout https://github.com/Hermanverschooten/jquery_datetimepick.
 
 ## Contributing
 
