@@ -1,6 +1,8 @@
 # JqueryDatepick
 
-TODO: Write a gem description
+Form helper for Rails that gives you a jQuery datepicker field.
+
+The current version of the jQuery plugin is 4.1
 
 ## Installation
 
