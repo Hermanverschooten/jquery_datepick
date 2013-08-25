@@ -7,11 +7,17 @@ module JqueryDatepick
 
     # Mehtod that generates datepicker input field inside a form
     def datepicker(object_name, method, options = {})
-      input_tag =  JqueryDatepick::InstanceTag.new(object_name, method, self, options.delete(:object))
+      options.delete(:object) if options[:object]
+      input_tag =  JqueryDatepick::InstanceTag.new(object_name, method, self, options)
       dp_options, tf_options =  input_tag.split_options(options)
       tf_options[:value] = input_tag.format_date(tf_options[:value], String.new(dp_options[:dateFormat])) if  tf_options[:value] && !tf_options[:value].empty? && dp_options.has_key?(:dateFormat)
-      html = input_tag.to_input_field_tag("text", tf_options)
-      html += javascript_tag("jQuery(document).ready(function(){jQuery('##{input_tag.get_name_and_id["id"]}').datepick(#{dp_options.to_json})});")
+      html= if defined?(ActionView::Helpers::InstanceTag) && ActionView::Helpers::InstanceTag.instance_method(:initialize).arity != 0
+        input_tag.to_input_field_tag("text", tf_options)
+      else
+        ActionView::Helpers::Tags::TextField.new(object_name, method, tf_options).render
+      end
+
+      html += javascript_tag("jQuery(document).ready(function(){jQuery('##{input_tag.get_name_and_id["id"]}').datepick($.extend(#{dp_options.to_json},$.datepick.regional['#{I18n.locale}']))});")
       html.html_safe
     end
     
@@ -25,7 +31,7 @@ module JqueryDatepick::FormBuilder
   end
 end
 
-class JqueryDatepick::InstanceTag < ActionView::Helpers::InstanceTag
+module JqueryDatepick_instance
 
   FORMAT_REPLACEMENTES = { "yy" => "%Y", "mm" => "%m", "dd" => "%d", "d" => "%-d", "m" => "%-m", "y" => "%y", "M" => "%b"}
   
@@ -57,5 +63,16 @@ class JqueryDatepick::InstanceTag < ActionView::Helpers::InstanceTag
   
   def translate_format(format)
     format.gsub!(/#{FORMAT_REPLACEMENTES.keys.join("|")}/) { |match| FORMAT_REPLACEMENTES[match] }
+  end
+end
+
+
+if defined?(ActionView::Helpers::InstanceTag) && ActionView::Helpers::InstanceTag.instance_method(:initialize).arity != 0
+class JqueryDatepick::InstanceTag < ActionView::Helpers::InstanceTag
+    include JqueryDatepick_instance
+  end
+else
+  class JqueryDatepick::InstanceTag < ActionView::Helpers::Tags::Base
+    include JqueryDatepick_instance
   end
 end
